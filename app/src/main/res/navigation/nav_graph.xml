@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/mapsFragment">
+    app:startDestination="@id/permissionFragment">
 
     <fragment
         android:id="@+id/permissionFragment"
@@ -13,6 +13,11 @@
         <action
             android:id="@+id/action_permissionFragment_to_mapsFragment"
             app:destination="@id/mapsFragment"
+            app:popUpTo="@id/permissionFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_permissionFragment_to_add_geofence_graph"
+            app:destination="@id/add_geofence_graph"
             app:popUpTo="@id/permissionFragment"
             app:popUpToInclusive="true" />
     </fragment>
