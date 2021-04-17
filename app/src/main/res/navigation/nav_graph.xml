@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/permissionFragment"
-        android:name="com.daniel.geofenceapp.ui.PermissionFragment"
+        android:name="com.daniel.geofenceapp.ui.permission.PermissionFragment"
         android:label="fragment_permission"
         tools:layout="@layout/fragment_permission" >
         <action
@@ -23,7 +23,7 @@
     </fragment>
     <fragment
         android:id="@+id/mapsFragment"
-        android:name="com.daniel.geofenceapp.ui.MapsFragment"
+        android:name="com.daniel.geofenceapp.ui.maps.MapsFragment"
         android:label="fragment_maps"
         tools:layout="@layout/fragment_maps" >
         <action
@@ -81,7 +81,7 @@
     </navigation>
     <fragment
         android:id="@+id/geofencesFragment"
-        android:name="com.daniel.geofenceapp.ui.GeofencesFragment"
+        android:name="com.daniel.geofenceapp.ui.geofences.GeofencesFragment"
         android:label="fragment_geofences"
         tools:layout="@layout/fragment_geofences" >
         <action
@@ -91,6 +91,12 @@
             app:popUpTo="@id/geofencesFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <action
+        android:id="@+id/action_step1Fragment_to_mapsFragment"
+        app:destination="@id/mapsFragment"
+        app:launchSingleTop="true"
+        app:popUpTo="@id/step1Fragment"
+        app:popUpToInclusive="true" />
 
 
 </navigation>

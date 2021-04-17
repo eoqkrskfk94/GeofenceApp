@@ -1,4 +1,4 @@
-package com.daniel.geofenceapp.ui
+package com.daniel.geofenceapp.ui.permission
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

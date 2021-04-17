@@ -16,6 +16,8 @@ class MainActivity : AppCompatActivity() {
         //위치 권한 받으면 바로 지도 fragment으로 이동 하기
         if(Permissions.hasLocationPermission(this)){
             findNavController(R.id.nav_host_fragment_container).navigate(R.id.action_permissionFragment_to_mapsFragment)
+            //findNavController(R.id.nav_host_fragment_container).navigate(R.id.action_permissionFragment_to_add_geofence_graph)
+
         }
     }
 }

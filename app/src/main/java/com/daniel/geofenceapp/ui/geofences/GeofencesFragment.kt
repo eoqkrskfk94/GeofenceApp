@@ -1,4 +1,4 @@
-package com.daniel.geofenceapp.ui
+package com.daniel.geofenceapp.ui.geofences
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
