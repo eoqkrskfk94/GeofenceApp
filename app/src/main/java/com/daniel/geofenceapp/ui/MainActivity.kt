@@ -1,8 +1,9 @@
-package com.daniel.geofenceapp
+package com.daniel.geofenceapp.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.navigation.findNavController
+import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.util.Permissions
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -1,4 +1,4 @@
-package com.daniel.geofenceapp
+package com.daniel.geofenceapp.ui
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.databinding.FragmentPermissionBinding
 import com.daniel.geofenceapp.util.ExtensionFunctions.observeOnce
 import com.daniel.geofenceapp.util.Permissions
