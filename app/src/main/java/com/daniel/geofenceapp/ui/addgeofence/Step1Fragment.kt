@@ -83,6 +83,7 @@ class Step1Fragment : Fragment() {
                     )
 
                     sharedViewModel.geoCountryCode = address[0].countryCode
+                    Log.e("Step1Fragment", sharedViewModel.geoCountryCode)
                     enableNextButton()
 
                 }else{
