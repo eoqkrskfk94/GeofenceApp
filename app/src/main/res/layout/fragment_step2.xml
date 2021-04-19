@@ -55,11 +55,12 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/places_recyclerView"
+        android:id="@+id/predictions_recyclerView"
         android:background="@color/white"
         android:elevation="2dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:layout_constraintHeight_max="200dp"
         app:layout_constraintStart_toStartOf="@id/geofence_location_textInputLayout"
         app:layout_constraintTop_toBottomOf="@id/geofence_location_textInputLayout"
         app:layout_constraintEnd_toEndOf="@id/geofence_location_textInputLayout"/>

@@ -11,7 +11,9 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.daniel.geofenceapp.R
+import com.daniel.geofenceapp.adapters.PredictionsAdapter
 import com.daniel.geofenceapp.databinding.FragmentStep2Binding
 import com.daniel.geofenceapp.viewModels.SharedViewModel
 import com.google.android.gms.common.api.ApiException
@@ -29,6 +31,8 @@ class Step2Fragment : Fragment() {
     private var _binding: FragmentStep2Binding? = null
     private val binding get() = _binding!!
 
+    private val predictionsAdapter by lazy { PredictionsAdapter() }
+
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
     private lateinit var placesClient: PlacesClient
@@ -45,6 +49,9 @@ class Step2Fragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentStep2Binding.inflate(inflater, container, false)
+
+        binding.predictionsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.predictionsRecyclerView.adapter = predictionsAdapter
 
         binding.geofenceLocationEt.doOnTextChanged{text, _, _, _ ->
             getPlaces(text)
@@ -65,6 +72,8 @@ class Step2Fragment : Fragment() {
             lifecycleScope.launch {
                 if(text.isNullOrEmpty()){
 
+                    predictionsAdapter.setData(emptyList())
+
                 }else{
                     val token = AutocompleteSessionToken.newInstance()
 
@@ -77,6 +86,7 @@ class Step2Fragment : Fragment() {
                     placesClient.findAutocompletePredictions(request)
                             .addOnSuccessListener { response ->
 
+                                predictionsAdapter.setData(response.autocompletePredictions)
                             }
                             .addOnFailureListener { exception: Exception? ->
                                 if(exception is ApiException){

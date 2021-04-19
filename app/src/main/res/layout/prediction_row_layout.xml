@@ -25,7 +25,7 @@
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:text="TextView"
+            setCity="@{prediction}"
             android:textSize="18sp"
             android:textColor="@color/black"
             android:textStyle="bold" />
@@ -37,7 +37,7 @@
             app:layout_constraintStart_toStartOf="@id/city_textView"
             app:layout_constraintEnd_toEndOf="@id/city_textView"
             app:layout_constraintTop_toBottomOf="@id/city_textView"
-            android:text="TextView"
+            setCountry="@{prediction}"
             android:textColor="@color/black" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
