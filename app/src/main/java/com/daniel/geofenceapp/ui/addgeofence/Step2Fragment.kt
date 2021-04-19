@@ -9,19 +9,25 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.adapters.PredictionsAdapter
 import com.daniel.geofenceapp.databinding.FragmentStep2Binding
+import com.daniel.geofenceapp.util.ExtensionFunctions.hide
 import com.daniel.geofenceapp.viewModels.SharedViewModel
+import com.daniel.geofenceapp.viewModels.Step2ViewModel
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
@@ -34,6 +40,7 @@ class Step2Fragment : Fragment() {
     private val predictionsAdapter by lazy { PredictionsAdapter() }
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val step2ViewModel: Step2ViewModel by viewModels()
 
     private lateinit var placesClient: PlacesClient
 
@@ -54,6 +61,7 @@ class Step2Fragment : Fragment() {
         binding.predictionsRecyclerView.adapter = predictionsAdapter
 
         binding.geofenceLocationEt.doOnTextChanged{text, _, _, _ ->
+            handleNextButton(text)
             getPlaces(text)
         }
 
@@ -64,8 +72,58 @@ class Step2Fragment : Fragment() {
         binding.step2Next.setOnClickListener {
             findNavController().navigate(R.id.action_step2Fragment_to_step3Fragment)
         }
+
+        subscribeToObservers()
+
         return binding.root
     }
+
+
+
+    private fun handleNextButton(text: CharSequence?) {
+        if(text.isNullOrEmpty()){
+            step2ViewModel.enableNextButton(false)
+        }
+
+    }
+
+    private fun subscribeToObservers() {
+        lifecycleScope.launch {
+            predictionsAdapter.placeId.collectLatest { placeId ->
+                if(placeId.isNotEmpty()){
+                    onCitySelected(placeId)
+                }
+
+            }
+        }
+    }
+
+    private fun onCitySelected(placeId: String) {
+        val placeFields = listOf(
+                Place.Field.ID,
+                Place.Field.LAT_LNG,
+                Place.Field.NAME
+        )
+        val request = FetchPlaceRequest.builder(placeId, placeFields).build()
+        placesClient.fetchPlace(request)
+                .addOnSuccessListener { response ->
+                    sharedViewModel.geoLatLng = response.place.latLng!!
+                    sharedViewModel.geoLocationName = response.place.name!!
+                    sharedViewModel.geoCitySelected = true
+                    binding.geofenceLocationEt.setText(sharedViewModel.geoLocationName)
+                    binding.geofenceLocationEt.setSelection(sharedViewModel.geoLocationName.length)
+                    binding.predictionsRecyclerView.hide()
+                    step2ViewModel.enableNextButton(true)
+                    Log.d("Step2Fragment", sharedViewModel.geoLatLng.toString())
+                    Log.d("Step2Fragment", sharedViewModel.geoLocationName)
+                    Log.d("Step2Fragment", sharedViewModel.geoCitySelected.toString())
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("Step2Fragment", exception.message.toString())
+                }
+
+    }
+
 
     private fun getPlaces(text: CharSequence?) {
         if(sharedViewModel.checkDeviceLocationSettings(requireContext())){

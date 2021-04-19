@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.daniel.geofenceapp.data.DataStoreRepository
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,6 +25,10 @@ class SharedViewModel @Inject constructor(
     var geoId = 0L
     var geoName = "Default"
     var geoCountryCode = ""
+    var geoLocationName = "Search City"
+    var geoLatLng = LatLng(0.0, 0.0)
+
+    var geoCitySelected = false
 
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
