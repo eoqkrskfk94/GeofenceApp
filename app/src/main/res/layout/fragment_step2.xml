@@ -41,7 +41,19 @@
             app:layout_constraintStart_toStartOf="@id/geofenceOne_textView"
             app:layout_constraintTop_toBottomOf="@+id/geofenceOne_textView" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <TextView
+            android:id="@+id/powered_by_google_textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:alpha="0.5"
+            android:text="powered by Google"
+            app:layout_constraintBottom_toTopOf="@id/geofence_location_textInputLayout"
+            app:layout_constraintEnd_toEndOf="@id/geofence_location_textInputLayout"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@id/geofence_location_textInputLayout" />
+
+       <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/geofence_location_textInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             handleNetworkConnection="@{step2ViewModel.internetAvailable}"

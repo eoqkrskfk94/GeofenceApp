@@ -30,6 +30,9 @@ class SharedViewModel @Inject constructor(
 
     var geoCitySelected = false
 
+    var geoRadius = 500f
+    var geoFenceReady = false
+
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
 
