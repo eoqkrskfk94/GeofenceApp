@@ -60,6 +60,9 @@ class Step2Fragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentStep2Binding.inflate(inflater, container, false)
+        binding.sharedViewModel = sharedViewModel
+        binding.step2ViewModel = step2ViewModel
+        binding.lifecycleOwner = this
 
         checkInternetConnection()
 
