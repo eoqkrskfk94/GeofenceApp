@@ -17,6 +17,7 @@ import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.adapters.PredictionsAdapter
 import com.daniel.geofenceapp.databinding.FragmentStep2Binding
 import com.daniel.geofenceapp.util.ExtensionFunctions.hide
+import com.daniel.geofenceapp.util.NetworkListener
 import com.daniel.geofenceapp.viewModels.SharedViewModel
 import com.daniel.geofenceapp.viewModels.Step2ViewModel
 import com.google.android.gms.common.api.ApiException
@@ -27,6 +28,7 @@ import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -44,6 +46,8 @@ class Step2Fragment : Fragment() {
 
     private lateinit var placesClient: PlacesClient
 
+    private lateinit var networkListener: NetworkListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Places.initialize(requireContext(), getString(R.string.google_maps_key))
@@ -56,6 +60,8 @@ class Step2Fragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentStep2Binding.inflate(inflater, container, false)
+
+        checkInternetConnection()
 
         binding.predictionsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.predictionsRecyclerView.adapter = predictionsAdapter
@@ -157,6 +163,21 @@ class Step2Fragment : Fragment() {
             Toast.makeText(requireContext(), "Please Enable Location Settings.", Toast.LENGTH_SHORT).show()
         }
 
+    }
+
+    private fun checkInternetConnection(){
+        lifecycleScope.launch {
+            networkListener = NetworkListener()
+            networkListener.checkNetworkAvailability(requireContext())
+                .collect { online ->
+                    step2ViewModel.setInternetAvailability(online)
+                    if(online && sharedViewModel.geoCitySelected){
+                        step2ViewModel.enableNextButton(true)
+                    } else{
+                        step2ViewModel.enableNextButton(false)
+                    }
+                }
+        }
     }
 
 
