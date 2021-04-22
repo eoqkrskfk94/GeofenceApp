@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -14,26 +16,28 @@ import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.databinding.FragmentMapsBinding
 import com.daniel.geofenceapp.util.ExtensionFunctions.hide
 import com.daniel.geofenceapp.util.ExtensionFunctions.show
+import com.daniel.geofenceapp.util.Permissions.hasBackgroundLocationPermission
+import com.daniel.geofenceapp.util.Permissions.requestBackgroundLocationPermission
 import com.daniel.geofenceapp.viewModels.SharedViewModel
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
+import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MapsFragment : Fragment(), OnMapReadyCallback {
+class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener, EasyPermissions.PermissionCallbacks{
 
     private var _binding: FragmentMapsBinding? = null
     private val binding get() = _binding!!
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-
+    private lateinit var circle: Circle
     private lateinit var map: GoogleMap
 
     override fun onCreateView(
@@ -65,6 +69,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         map = googleMap!!
         map.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.mapstyle))
         map.isMyLocationEnabled = true
+        map.setOnMapLongClickListener(this)
         map.uiSettings.apply {
             isMyLocationButtonEnabled = true
             isMapToolbarEnabled = false
@@ -86,6 +91,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private fun onGeofenceReady() {
         if(sharedViewModel.geoFenceReady){
             sharedViewModel.geoFenceReady = false
+            sharedViewModel.geofencePrepared = true
             displayInfoMessage()
             zoomToSelectedLocation()
         }
@@ -101,8 +107,80 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onMapLongClick(location: LatLng?) {
+        if(hasBackgroundLocationPermission(requireContext())){
+            if(sharedViewModel.geofencePrepared && location != null){
+                stepupGeofence(location)
+            }else{
+                Toast.makeText(requireContext(), "You need to create a new Geofence first.", Toast.LENGTH_SHORT).show()
+            }
+        }else{
+            requestBackgroundLocationPermission(this)
+        }
+
+    }
+
+    private fun stepupGeofence(location: LatLng) {
+        lifecycleScope.launch {
+            if(sharedViewModel.checkDeviceLocationSettings(requireContext())){
+                drawCircle(location)
+                drawMarker(location)
+                zoomToGeofence(circle.center, circle.radius.toFloat())
+            }else{
+                Toast.makeText(requireContext(), "Please enable location settings.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
+
+    private fun zoomToGeofence(center: LatLng, radius: Float) {
+        map.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(
+                        sharedViewModel.getBounds(center, radius), 10
+                ), 1000, null
+        )
+    }
+
+    private fun drawMarker(location: LatLng) {
+         map.addMarker(
+                MarkerOptions().position(location).title(sharedViewModel.geoName)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+        )
+
+    }
+
+    private fun drawCircle(location: LatLng) {
+        circle = map.addCircle(
+                CircleOptions().center(location).radius(sharedViewModel.geoRadius.toDouble())
+                        .strokeColor(ContextCompat.getColor(requireContext(), R.color.blue_700))
+                        .fillColor(ContextCompat.getColor(requireContext(), R.color.blue_transparent))
+        )
+
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
+        if(EasyPermissions.somePermissionPermanentlyDenied(this, perms[0])){
+            SettingsDialog.Builder(requireActivity()).build().show()
+        }else{
+            requestBackgroundLocationPermission(this)
+        }
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
+        onGeofenceReady()
+        Toast.makeText(requireContext(), "Permission Granted! Long Press on the Map to add a Geofence.", Toast.LENGTH_SHORT).show()
+
+    }
+
+
 }
