@@ -1,6 +1,7 @@
 package com.daniel.geofenceapp.ui.maps
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
@@ -30,7 +31,7 @@ import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener, EasyPermissions.PermissionCallbacks{
+class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener, EasyPermissions.PermissionCallbacks, GoogleMap.SnapshotReadyCallback{
 
     private var _binding: FragmentMapsBinding? = null
     private val binding get() = _binding!!
@@ -75,7 +76,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
             isMapToolbarEnabled = false
         }
         onGeofenceReady()
-
+        observeDatabase()
 
 
     }
@@ -86,6 +87,16 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
                 2000,
                 null
         )
+    }
+
+    private fun observeDatabase(){
+        sharedViewModel.readGeofences.observe(viewLifecycleOwner, { geofenceEntity ->
+            map.clear()
+            geofenceEntity.forEach { geofence ->
+                drawCircle(LatLng(geofence.latitude, geofence.longitude), geofence.radius)
+                drawMarker(LatLng(geofence.latitude, geofence.longitude), geofence.name)
+            }
+        })
     }
 
     private fun onGeofenceReady() {
@@ -123,9 +134,14 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
     private fun stepupGeofence(location: LatLng) {
         lifecycleScope.launch {
             if(sharedViewModel.checkDeviceLocationSettings(requireContext())){
-                drawCircle(location)
-                drawMarker(location)
+                drawCircle(location, sharedViewModel.geoRadius)
+                drawMarker(location, sharedViewModel.geoName)
                 zoomToGeofence(circle.center, circle.radius.toFloat())
+
+                delay(1500)
+                map.snapshot(this@MapsFragment)
+                delay(2000)
+                sharedViewModel.addGeofenceToDatabase(location)
             }else{
                 Toast.makeText(requireContext(), "Please enable location settings.", Toast.LENGTH_SHORT).show()
             }
@@ -141,17 +157,17 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
         )
     }
 
-    private fun drawMarker(location: LatLng) {
+    private fun drawMarker(location: LatLng, name: String) {
          map.addMarker(
-                MarkerOptions().position(location).title(sharedViewModel.geoName)
+                MarkerOptions().position(location).title(name)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
         )
 
     }
 
-    private fun drawCircle(location: LatLng) {
+    private fun drawCircle(location: LatLng, radius: Float) {
         circle = map.addCircle(
-                CircleOptions().center(location).radius(sharedViewModel.geoRadius.toDouble())
+                CircleOptions().center(location).radius(radius.toDouble())
                         .strokeColor(ContextCompat.getColor(requireContext(), R.color.blue_700))
                         .fillColor(ContextCompat.getColor(requireContext(), R.color.blue_transparent))
         )
@@ -180,6 +196,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
         onGeofenceReady()
         Toast.makeText(requireContext(), "Permission Granted! Long Press on the Map to add a Geofence.", Toast.LENGTH_SHORT).show()
 
+    }
+
+    override fun onSnapshotReady(snapshot: Bitmap?) {
+        sharedViewModel.geoSnapShot = snapshot
     }
 
 

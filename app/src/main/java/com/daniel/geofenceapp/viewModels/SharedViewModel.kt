@@ -2,6 +2,7 @@ package com.daniel.geofenceapp.viewModels
 
 import android.app.Application
 import android.content.Context
+import android.graphics.Bitmap
 import android.location.LocationManager
 import android.os.Build
 import android.provider.Settings
@@ -28,17 +29,18 @@ class SharedViewModel @Inject constructor(
 
     val app = application
 
-    var geoId = 0L
-    var geoName = "Default"
-    var geoCountryCode = ""
-    var geoLocationName = "Search City"
-    var geoLatLng = LatLng(0.0, 0.0)
+    var geoId: Long = 0L
+    var geoName: String = "Default"
+    var geoCountryCode: String = ""
+    var geoLocationName: String = "Search City"
+    var geoLatLng: LatLng = LatLng(0.0, 0.0)
 
     var geoCitySelected = false
 
-    var geoRadius = 500f
+    var geoRadius: Float = 500f
     var geoFenceReady = false
     var geofencePrepared = false
+    var geoSnapShot: Bitmap? = null
 
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
@@ -62,6 +64,11 @@ class SharedViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             geofenceRepository.removeGeofence(geofenceEntity)
         }
+    }
+
+    fun addGeofenceToDatabase(location: LatLng){
+        val geofenceEntity = GeofenceEntity(geoId,geoName,geoLocationName,location.latitude,location.longitude,geoRadius,geoSnapShot!!)
+        addGeofence(geofenceEntity)
     }
 
 
