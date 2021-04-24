@@ -8,6 +8,14 @@ import com.daniel.geofenceapp.util.ExtensionFunctions.show
 
 object ExtensionFunctions {
 
+    fun View.enable(){
+        this.isEnabled = true
+    }
+
+    fun View.disable(){
+        this.isEnabled = false
+    }
+
     fun View.show(){
         this.visibility = View.VISIBLE
     }

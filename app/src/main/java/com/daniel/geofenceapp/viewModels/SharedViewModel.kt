@@ -55,6 +55,21 @@ class SharedViewModel @Inject constructor(
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
 
+    fun resetSharedValues(){
+        var geoId: Long = 0L
+        var geoName: String = "Default"
+        var geoCountryCode: String = ""
+        var geoLocationName: String = "Search City"
+        var geoLatLng: LatLng = LatLng(0.0, 0.0)
+
+        var geoCitySelected = false
+
+        var geoRadius: Float = 500f
+        var geoFenceReady = false
+        var geofencePrepared = false
+        var geoSnapShot: Bitmap? = null
+    }
+
     fun saveFirstLaunch(firstLaunch: Boolean) =
             viewModelScope.launch(Dispatchers.IO) {
                 dataStoreRepository.saveFirstLaunch(firstLaunch)

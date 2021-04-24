@@ -26,6 +26,7 @@
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_add"
+        android:background="@color/view_state_background_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white" />
@@ -34,7 +35,7 @@
         android:id="@+id/geofences_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
+        android:background="@color/view_state_background_color"
         android:layout_marginBottom="16dp"
         android:clickable="true"
         android:focusable="true"

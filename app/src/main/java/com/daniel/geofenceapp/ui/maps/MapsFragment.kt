@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.databinding.FragmentMapsBinding
+import com.daniel.geofenceapp.util.ExtensionFunctions.disable
+import com.daniel.geofenceapp.util.ExtensionFunctions.enable
 import com.daniel.geofenceapp.util.ExtensionFunctions.hide
 import com.daniel.geofenceapp.util.ExtensionFunctions.show
 import com.daniel.geofenceapp.util.Permissions.hasBackgroundLocationPermission
@@ -134,6 +136,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
     private fun stepupGeofence(location: LatLng) {
         lifecycleScope.launch {
             if(sharedViewModel.checkDeviceLocationSettings(requireContext())){
+                binding.addGeofenceFab.disable()
+                binding.geofencesFab.disable()
+                binding.geofenceProgressBar.show()
+
                 drawCircle(location, sharedViewModel.geoRadius)
                 drawMarker(location, sharedViewModel.geoName)
                 zoomToGeofence(circle.center, circle.radius.toFloat())
@@ -144,6 +150,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
                 sharedViewModel.addGeofenceToDatabase(location)
                 delay(2000)
                 sharedViewModel.startGeofence(location.latitude, location.longitude)
+
+
+                sharedViewModel.resetSharedValues()
+                binding.addGeofenceFab.enable()
+                binding.geofencesFab.enable()
+                binding.geofenceProgressBar.hide()
             }else{
                 Toast.makeText(requireContext(), "Please enable location settings.", Toast.LENGTH_SHORT).show()
             }
