@@ -1,17 +1,26 @@
 package com.daniel.geofenceapp.viewModels
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.location.LocationManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.daniel.geofenceapp.broadcastreceiver.GeofenceBroadcastReceiver
 import com.daniel.geofenceapp.data.DataStoreRepository
 import com.daniel.geofenceapp.data.GeofenceEntity
 import com.daniel.geofenceapp.data.GeofenceRepository
+import com.daniel.geofenceapp.util.Permissions
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.SphericalUtil
@@ -28,6 +37,7 @@ class SharedViewModel @Inject constructor(
         private val geofenceRepository: GeofenceRepository): AndroidViewModel(application) {
 
     val app = application
+    private var geofencingClient = LocationServices.getGeofencingClient(app.applicationContext)
 
     var geoId: Long = 0L
     var geoName: String = "Default"
@@ -69,6 +79,57 @@ class SharedViewModel @Inject constructor(
     fun addGeofenceToDatabase(location: LatLng){
         val geofenceEntity = GeofenceEntity(geoId,geoName,geoLocationName,location.latitude,location.longitude,geoRadius,geoSnapShot!!)
         addGeofence(geofenceEntity)
+    }
+
+    private fun setPendingIntent(geoId: Int): PendingIntent{
+        val intent = Intent(app, GeofenceBroadcastReceiver::class.java)
+        return PendingIntent.getBroadcast(
+                app,
+                geoId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startGeofence(latitude: Double, longitude: Double){
+        if(Permissions.hasBackgroundLocationPermission(app)){
+            val geofence = Geofence.Builder()
+                    .setRequestId(geoId.toString())
+                    .setCircularRegion(
+                            latitude,
+                            longitude,
+                            geoRadius
+                    )
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                    .setTransitionTypes(
+                            Geofence.GEOFENCE_TRANSITION_ENTER
+                    or Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL
+                    )
+                    .setLoiteringDelay(5000)
+                    .build()
+
+            val geofencingRequest = GeofencingRequest.Builder()
+                    .setInitialTrigger(
+                            GeofencingRequest.INITIAL_TRIGGER_ENTER
+                    or GeofencingRequest.INITIAL_TRIGGER_EXIT
+                    or GeofencingRequest.INITIAL_TRIGGER_DWELL
+                    )
+                    .addGeofence(geofence)
+                    .build()
+
+            geofencingClient.addGeofences(geofencingRequest, setPendingIntent(geoId.toInt())).run {
+                addOnSuccessListener {
+                    Log.d("Geofence", "Successfully added")
+                }
+                addOnFailureListener {
+                    Log.d("Geofence", it.toString())
+                }
+            }
+
+        }else{
+            Log.d("Geofence", "Permission not granted")
+        }
     }
 
 
