@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.daniel.geofenceapp.R
 import com.daniel.geofenceapp.databinding.FragmentMapsBinding
 import com.daniel.geofenceapp.util.ExtensionFunctions.disable
@@ -37,6 +38,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
 
     private var _binding: FragmentMapsBinding? = null
     private val binding get() = _binding!!
+
+    private val args by navArgs<MapsFragmentArgs>()
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
@@ -79,8 +82,16 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLongClickLis
         }
         onGeofenceReady()
         observeDatabase()
+        backFromGeofencesFragment()
 
 
+    }
+
+    private fun backFromGeofencesFragment() {
+        if(args.geofenceEntity != null){
+            val selectedGeofence = LatLng(args.geofenceEntity!!.latitude, args.geofenceEntity!!.longitude)
+            zoomToGeofence(selectedGeofence, args.geofenceEntity!!.radius)
+        }
     }
 
     private fun zoomToSelectedLocation() {

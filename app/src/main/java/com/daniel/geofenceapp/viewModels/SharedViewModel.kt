@@ -52,7 +52,6 @@ class SharedViewModel @Inject constructor(
     var geoFenceReady = false
     var geofencePrepared = false
     var geoSnapShot: Bitmap? = null
-    var geofenceRemoved = false
 
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
@@ -68,7 +67,6 @@ class SharedViewModel @Inject constructor(
         geoFenceReady = false
         geofencePrepared = false
         geoSnapShot = null
-        geofenceRemoved = false
     }
 
     fun saveFirstLaunch(firstLaunch: Boolean) =

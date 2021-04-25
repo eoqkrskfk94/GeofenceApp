@@ -4,10 +4,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.daniel.geofenceapp.data.GeofenceEntity
 import com.daniel.geofenceapp.databinding.GeofencesRowLayoutBinding
+import com.daniel.geofenceapp.ui.geofences.GeofencesFragmentDirections
 import com.daniel.geofenceapp.util.MyDiffUtil
 import com.daniel.geofenceapp.viewModels.SharedViewModel
 import com.google.android.material.snackbar.Snackbar
@@ -45,6 +47,11 @@ class GeofencesAdapter(private val sharedViewModel: SharedViewModel): RecyclerVi
         holder.binding.deleteImageView.setOnClickListener {
             removeItem(holder, position)
         }
+
+        holder.binding.snapshotImageView.setOnClickListener {
+            val action = GeofencesFragmentDirections.actionGeofencesFragmentToMapsFragment(currentGeofence)
+            holder.itemView.findNavController().navigate(action)
+        }
     }
 
     private fun removeItem(holder: GeofencesAdapter.MyViewHolder, position: Int) {
@@ -52,7 +59,6 @@ class GeofencesAdapter(private val sharedViewModel: SharedViewModel): RecyclerVi
             val geofenceStopped = sharedViewModel.stopGeofence(listOf(geofenceEntity[position].geoId))
             if(geofenceStopped){
                 sharedViewModel.removeGeofence(geofenceEntity[position])
-                sharedViewModel.geofenceRemoved = true
                 showSnackBar(holder, geofenceEntity[position])
             }else{
                 Log.d("GeofenceAdapter", "Geofence NOT REMOVED")
@@ -69,7 +75,6 @@ class GeofencesAdapter(private val sharedViewModel: SharedViewModel): RecyclerVi
     private fun undoRemoval(holder: GeofencesAdapter.MyViewHolder, removedItem: GeofenceEntity) {
         sharedViewModel.addGeofence(removedItem)
         sharedViewModel.startGeofence(removedItem.latitude, removedItem.longitude)
-        sharedViewModel.geofenceRemoved = false
     }
 
     override fun getItemCount(): Int {

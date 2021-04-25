@@ -22,6 +22,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 
 class Step1Fragment : Fragment() {
@@ -74,17 +75,23 @@ class Step1Fragment : Fragment() {
             val placeResponse = placesClient.findCurrentPlace(request)
             placeResponse.addOnCompleteListener { task ->
                 if(task.isSuccessful){
-                    val response = task.result
-                    val latLng = response.placeLikelihoods[0].place.latLng!!
-                    val address = geocoder.getFromLocation(
-                            latLng.latitude,
-                            latLng.longitude,
-                            1
-                    )
+                    try {
+                        val response = task.result
+                        val latLng = response.placeLikelihoods[0].place.latLng!!
+                        val address = geocoder.getFromLocation(
+                                latLng.latitude,
+                                latLng.longitude,
+                                1
+                        )
 
-                    sharedViewModel.geoCountryCode = address[0].countryCode
-                    Log.e("Step1Fragment", sharedViewModel.geoCountryCode)
-                    enableNextButton()
+                        sharedViewModel.geoCountryCode = address[0].countryCode
+                        Log.e("Step1Fragment", sharedViewModel.geoCountryCode)
+                        enableNextButton()
+                    }catch (exception: IOException){
+                        Log.e("Step1Fragment", "getFromLocation FAILED")
+                    }finally {
+                        enableNextButton()
+                    }
 
                 }else{
                     val exception = task.exception
