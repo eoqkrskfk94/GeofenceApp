@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.SphericalUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,23 +52,23 @@ class SharedViewModel @Inject constructor(
     var geoFenceReady = false
     var geofencePrepared = false
     var geoSnapShot: Bitmap? = null
+    var geofenceRemoved = false
 
     //DataStore
     val readFirstLaunch = dataStoreRepository.readFirstLaunch.asLiveData()
 
     fun resetSharedValues(){
-        var geoId: Long = 0L
-        var geoName: String = "Default"
-        var geoCountryCode: String = ""
-        var geoLocationName: String = "Search City"
-        var geoLatLng: LatLng = LatLng(0.0, 0.0)
-
-        var geoCitySelected = false
-
-        var geoRadius: Float = 500f
-        var geoFenceReady = false
-        var geofencePrepared = false
-        var geoSnapShot: Bitmap? = null
+        geoId = 0L
+        geoName = "Default"
+        geoCountryCode = ""
+        geoLocationName = "Search City"
+        geoLatLng = LatLng(0.0, 0.0)
+        geoCitySelected = false
+        geoRadius = 500f
+        geoFenceReady = false
+        geofencePrepared = false
+        geoSnapShot = null
+        geofenceRemoved = false
     }
 
     fun saveFirstLaunch(firstLaunch: Boolean) =
@@ -144,6 +145,24 @@ class SharedViewModel @Inject constructor(
 
         }else{
             Log.d("Geofence", "Permission not granted")
+        }
+    }
+
+    suspend fun stopGeofence(geoIds: List<Long>): Boolean{
+        return if(Permissions.hasBackgroundLocationPermission(app)){
+            val result = CompletableDeferred<Boolean>()
+            geofencingClient.removeGeofences(setPendingIntent(geoIds.first().toInt()))
+                    .addOnCompleteListener {
+                        if(it.isSuccessful){
+                            result.complete(true)
+
+                        }else{
+                            result.complete(false)
+                        }
+                    }
+            result.await()
+        }else{
+            false
         }
     }
 
